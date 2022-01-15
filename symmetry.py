@@ -3,10 +3,9 @@
 import getopt
 import os
 import sys
-from PIL import Image
-from PIL import UnidentifiedImageError
-from PIL.ImageOps import flip
-from PIL.ImageOps import mirror
+import PIL
+import PIL.ImageOps
+
 
 def main(argv):
     inputfile = ''
@@ -44,11 +43,11 @@ def main(argv):
     print('Input file: ', inputfile)
     # load in image
     try:
-        inFile = Image.open(inputfile)
+        inFile = PIL.Image.open(inputfile)
     except FileNotFoundError:
         print('Cant find input file')
         sys.exit()
-    except UnidentifiedImageError:
+    except PIL.UnidentifiedImageError:
         print('do not understand file format')
         sys.exit()
     outFile = None
@@ -56,17 +55,17 @@ def main(argv):
         print('Flipping horizontal')
         # flip
         width, height = inFile.size
-        outFile = Image.new(inFile.mode, (2*width, height))
+        outFile = PIL.Image.new(inFile.mode, (2*width, height))
         outFile.paste(inFile, (0, 0))
-        outFile.paste(mirror(inFile), (width, 0))
+        outFile.paste(PIL.ImageOps.mirror(inFile), (width, 0))
         inFile = outFile
     if vertical is True:
         print('Flipping vertical')
         # flip
         width, height = inFile.size
-        outFile = Image.new(inFile.mode, (width, 2*height))
+        outFile = PIL.Image.new(inFile.mode, (width, 2*height))
         outFile.paste(inFile, (0, 0))
-        outFile.paste(flip(inFile), (0, height))
+        outFile.paste(PIL.ImageOps.flip(inFile), (0, height))
     print('Output file: ', outputfile)
     # write out image
     outFile.save(outputfile)
