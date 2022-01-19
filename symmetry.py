@@ -74,6 +74,8 @@ def main(argv):
         sys.exit()
 
     # fill in the canvas
+    # start off with mirror image of the original input image
+    # to add left or right if needed
     mirror = PIL.ImageOps.mirror(image)
     if left:
         print('Mirroring left')
@@ -82,6 +84,8 @@ def main(argv):
         print('Mirroring right')
         image = stack_horizontal(mode, image, mirror)
 
+    # now we have horizontal sorted, find mirror ('flipped') image
+    # to add above or below if needed
     flip = PIL.ImageOps.flip(image)
     if up:
         print('Flipping up')
