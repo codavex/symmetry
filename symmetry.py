@@ -19,7 +19,7 @@ def main(argv):
         opts, args = getopt.getopt(argv, "i:o:lrud", ["ifile=", "ofile="])
     except getopt.GetoptError:
         print('symmetry.py -i <infile> [-o <outfile>] [-l] [-r] [-u] [-d]')
-        sys.exit(2)
+        sys.exit()
 
     # sort out options
     for opt, arg in opts:
@@ -40,10 +40,10 @@ def main(argv):
 
     # some validation
     if inputFile == '':
-        print('must specify input file')
+        print('Must specify input file')
         sys.exit()
     if left is False and right is False and up is False and down is False:
-        print('must specify horizontal and/or vertical symmetry')
+        print('Must specify horizontal and/or vertical symmetry')
         sys.exit()
 
     print('Processing...')
@@ -56,7 +56,7 @@ def main(argv):
         print('Cant find input file')
         sys.exit()
     except PIL.UnidentifiedImageError:
-        print('do not understand file format')
+        print('Do not understand file format')
         sys.exit()
 
     # fill in the canvas
