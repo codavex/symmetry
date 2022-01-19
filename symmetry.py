@@ -8,8 +8,8 @@ import PIL.ImageOps
 
 
 def main(argv):
-    inputfile = ''
-    outputfile = ''
+    inputFile = ''
+    outputFile = ''
     left = False
     right = False
     up = False
@@ -24,10 +24,11 @@ def main(argv):
     # sort out options
     for opt, arg in opts:
         if opt in ("-i", "--ifile"):
-            inputfile = arg
-            outputfile = arg + '.out'  # default output file name
+            inputFile = arg
+            if outputFile == '':
+                outputFile = arg + '.out'  # default output file name
         elif opt in ("-o", "--ofile"):
-            outputfile = arg
+            outputFile = arg
         elif opt == '-l':
             left = True
         elif opt == '-r':
@@ -38,7 +39,7 @@ def main(argv):
             down = True
 
     # some validation
-    if inputfile == '':
+    if inputFile == '':
         print('must specify input file')
         sys.exit()
     if left is False and right is False and up is False and down is False:
@@ -46,10 +47,10 @@ def main(argv):
         sys.exit()
 
     print('Processing...')
-    print('Input file: ', inputfile)
+    print('Input file: ', inputFile)
     # load in image
     try:
-        image = PIL.Image.open(inputfile)
+        image = PIL.Image.open(inputFile)
         mode = image.mode
     except FileNotFoundError:
         print('Cant find input file')
@@ -87,9 +88,9 @@ def main(argv):
         temp.paste(flip, (0, image.height))
         image = temp
 
-    print('Output file: ', outputfile)
+    print('Output file: ', outputFile)
     # write out image
-    image.save(outputfile)
+    image.save(outputFile)
 
 
 if __name__ == "__main__":
