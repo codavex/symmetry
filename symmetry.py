@@ -49,10 +49,8 @@ def main(argv):
     print('Input file: ', inputfile)
     # load in image
     try:
-        inFile = PIL.Image.open(inputfile)
-        flip = PIL.ImageOps.flip(inFile)
-        mirror = PIL.ImageOps.mirror(inFile)
-        flipmirror = PIL.ImageOps.flip(mirror)
+        image = PIL.Image.open(inputfile)
+        mode = image.mode
     except FileNotFoundError:
         print('Cant find input file')
         sys.exit()
@@ -60,38 +58,38 @@ def main(argv):
         print('do not understand file format')
         sys.exit()
 
-    # create output file canvas
-    width, height = inFile.size
-    h_tiles = 1 + (1 if left else 0) + (1 if right else 0)
-    v_tiles = 1 + (1 if up else 0) + (1 if down else 0)
-    outFile = PIL.Image.new(inFile.mode, (h_tiles*width, v_tiles*height))
-
     # fill in the canvas
-    outFile.paste(inFile, (width if left else 0,
-                           height if up else 0))  # original image
+    mirror = PIL.ImageOps.mirror(image)
     if left:
-        outFile.paste(mirror, (0, height if up else 0))
+        print('Mirroring left')
+        temp = PIL.Image.new(mode, (image.width + mirror.width, image.height))
+        temp.paste(mirror, (0, 0))
+        temp.paste(image, (mirror.width, 0))
+        image = temp
     if right:
-        outFile.paste(mirror, (2*width if left else width,
-                               height if up else 0))
+        print('Mirroring right')
+        temp = PIL.Image.new(mode, (image.width + mirror.width, image.height))
+        temp.paste(image, (0, 0))
+        temp.paste(mirror, (image.width, 0))
+        image = temp
+
+    flip = PIL.ImageOps.flip(image)
     if up:
-        outFile.paste(flip, (width if left else 0, 0))
+        print('Flipping up')
+        temp = PIL.Image.new(mode, (image.width, image.height + flip.height))
+        temp.paste(flip, (0, 0))
+        temp.paste(image, (0, flip.height))
+        image = temp
     if down:
-        outFile.paste(flip, (width if left else 0,
-                             2*height if up else height))
-    if up and left:
-        outFile.paste(flipmirror, (0, 0))
-    if up and right:
-        outFile.paste(flipmirror, (2*width if left else width, 0))
-    if down and left:
-        outFile.paste(flipmirror, (0, 2*height if up else height))
-    if down and right:
-        outFile.paste(flipmirror, (2*width if left else width,
-                                   2*height if up else height))
+        print('Flipping down')
+        temp = PIL.Image.new(mode, (image.width, image.height + flip.height))
+        temp.paste(image, (0, 0))
+        temp.paste(flip, (0, image.height))
+        image = temp
 
     print('Output file: ', outputfile)
     # write out image
-    outFile.save(outputfile)
+    image.save(outputfile)
 
 
 if __name__ == "__main__":
