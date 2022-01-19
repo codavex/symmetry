@@ -7,9 +7,23 @@ import PIL
 import PIL.ImageOps
 
 
+def stack_horizontal(mode, left, right):
+    temp = PIL.Image.new(mode, (left.width + right.width, left.height))
+    temp.paste(left, (0, 0))
+    temp.paste(right, (left.width, 0))
+    return temp
+
+
+def stack_vertical(mode, top, bottom):
+    temp = PIL.Image.new(mode, (top.width, top.height + bottom.height))
+    temp.paste(top, (0, 0))
+    temp.paste(bottom, (0, top.height))
+    return temp
+
+
 def main(argv):
-    inputfile = ''
-    outputfile = ''
+    inputFile = ''
+    outputFile = ''
     left = False
     right = False
     up = False
@@ -19,15 +33,16 @@ def main(argv):
         opts, args = getopt.getopt(argv, "i:o:lrud", ["ifile=", "ofile="])
     except getopt.GetoptError:
         print('symmetry.py -i <infile> [-o <outfile>] [-l] [-r] [-u] [-d]')
-        sys.exit(2)
+        sys.exit()
 
     # sort out options
     for opt, arg in opts:
         if opt in ("-i", "--ifile"):
-            inputfile = arg
-            outputfile = arg + '.out'  # default output file name
+            inputFile = arg
+            if outputFile == '':
+                outputFile = arg + '.out'  # default output file name
         elif opt in ("-o", "--ofile"):
-            outputfile = arg
+            outputFile = arg
         elif opt == '-l':
             left = True
         elif opt == '-r':
@@ -38,60 +53,50 @@ def main(argv):
             down = True
 
     # some validation
-    if inputfile == '':
-        print('must specify input file')
+    if inputFile == '':
+        print('Must specify input file')
         sys.exit()
     if left is False and right is False and up is False and down is False:
-        print('must specify horizontal and/or vertical symmetry')
+        print('Must specify horizontal and/or vertical symmetry')
         sys.exit()
 
     print('Processing...')
-    print('Input file: ', inputfile)
+    print('Input file: ', inputFile)
     # load in image
     try:
-        inFile = PIL.Image.open(inputfile)
-        flip = PIL.ImageOps.flip(inFile)
-        mirror = PIL.ImageOps.mirror(inFile)
-        flipmirror = PIL.ImageOps.flip(mirror)
+        image = PIL.Image.open(inputFile)
+        mode = image.mode
     except FileNotFoundError:
         print('Cant find input file')
         sys.exit()
     except PIL.UnidentifiedImageError:
-        print('do not understand file format')
+        print('Do not understand file format')
         sys.exit()
 
-    # create output file canvas
-    width, height = inFile.size
-    h_tiles = 1 + (1 if left else 0) + (1 if right else 0)
-    v_tiles = 1 + (1 if up else 0) + (1 if down else 0)
-    outFile = PIL.Image.new(inFile.mode, (h_tiles*width, v_tiles*height))
-
     # fill in the canvas
-    outFile.paste(inFile, (width if left else 0,
-                           height if up else 0))  # original image
+    # start off with mirror image of the original input image
+    # to add left or right if needed
+    mirror = PIL.ImageOps.mirror(image)
     if left:
-        outFile.paste(mirror, (0, height if up else 0))
+        print('Mirroring left')
+        image = stack_horizontal(mode, mirror, image)
     if right:
-        outFile.paste(mirror, (2*width if left else width,
-                               height if up else 0))
-    if up:
-        outFile.paste(flip, (width if left else 0, 0))
-    if down:
-        outFile.paste(flip, (width if left else 0,
-                             2*height if up else height))
-    if up and left:
-        outFile.paste(flipmirror, (0, 0))
-    if up and right:
-        outFile.paste(flipmirror, (2*width if left else width, 0))
-    if down and left:
-        outFile.paste(flipmirror, (0, 2*height if up else height))
-    if down and right:
-        outFile.paste(flipmirror, (2*width if left else width,
-                                   2*height if up else height))
+        print('Mirroring right')
+        image = stack_horizontal(mode, image, mirror)
 
-    print('Output file: ', outputfile)
+    # now we have horizontal sorted, find mirror ('flipped') image
+    # to add above or below if needed
+    flip = PIL.ImageOps.flip(image)
+    if up:
+        print('Flipping up')
+        image = stack_vertical(mode, flip, image)
+    if down:
+        print('Flipping down')
+        image = stack_vertical(mode, image, flip)
+
+    print('Output file: ', outputFile)
     # write out image
-    outFile.save(outputfile)
+    image.save(outputFile)
 
 
 if __name__ == "__main__":
