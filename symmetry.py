@@ -7,6 +7,20 @@ import PIL
 import PIL.ImageOps
 
 
+def stack_horizontal(mode, left, right):
+    temp = PIL.Image.new(mode, (left.width + right.width, left.height))
+    temp.paste(left, (0, 0))
+    temp.paste(right, (left.width, 0))
+    return temp
+
+
+def stack_vertical(mode, top, bottom):
+    temp = PIL.Image.new(mode, (top.width, top.height + bottom.height))
+    temp.paste(top, (0, 0))
+    temp.paste(bottom, (0, top.height))
+    return temp
+
+
 def main(argv):
     inputFile = ''
     outputFile = ''
@@ -63,30 +77,18 @@ def main(argv):
     mirror = PIL.ImageOps.mirror(image)
     if left:
         print('Mirroring left')
-        temp = PIL.Image.new(mode, (image.width + mirror.width, image.height))
-        temp.paste(mirror, (0, 0))
-        temp.paste(image, (mirror.width, 0))
-        image = temp
+        image = stack_horizontal(mode, mirror, image)
     if right:
         print('Mirroring right')
-        temp = PIL.Image.new(mode, (image.width + mirror.width, image.height))
-        temp.paste(image, (0, 0))
-        temp.paste(mirror, (image.width, 0))
-        image = temp
+        image = stack_horizontal(mode, image, mirror)
 
     flip = PIL.ImageOps.flip(image)
     if up:
         print('Flipping up')
-        temp = PIL.Image.new(mode, (image.width, image.height + flip.height))
-        temp.paste(flip, (0, 0))
-        temp.paste(image, (0, flip.height))
-        image = temp
+        image = stack_vertical(mode, flip, image)
     if down:
         print('Flipping down')
-        temp = PIL.Image.new(mode, (image.width, image.height + flip.height))
-        temp.paste(image, (0, 0))
-        temp.paste(flip, (0, image.height))
-        image = temp
+        image = stack_vertical(mode, image, flip)
 
     print('Output file: ', outputFile)
     # write out image
