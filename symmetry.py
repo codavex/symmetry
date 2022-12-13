@@ -1,29 +1,28 @@
 #!/bin/python3
 
 import getopt
-import os
 import sys
 import PIL
 import PIL.ImageOps
 
 
-def stack_horizontal(mode, left, right):
-    temp = PIL.Image.new(mode, (left.width + right.width, left.height))
+def stack_horizontal(left, right):
+    temp = PIL.Image.new(left.mode, (left.width + right.width, left.height))
     temp.paste(left, (0, 0))
     temp.paste(right, (left.width, 0))
     return temp
 
 
-def stack_vertical(mode, top, bottom):
-    temp = PIL.Image.new(mode, (top.width, top.height + bottom.height))
+def stack_vertical(top, bottom):
+    temp = PIL.Image.new(top.mode, (top.width, top.height + bottom.height))
     temp.paste(top, (0, 0))
     temp.paste(bottom, (0, top.height))
     return temp
 
 
 def main(argv):
-    inputFile = ''
-    outputFile = ''
+    inputfile = ''
+    outputfile = ''
     left = False
     right = False
     up = False
@@ -38,22 +37,22 @@ def main(argv):
     # sort out options
     for opt, arg in opts:
         if opt in ("-i", "--ifile"):
-            inputFile = arg
-            if outputFile == '':
-                outputFile = arg + '.out'  # default output file name
+            inputfile = arg
+            if '' == outputfile:
+                outputfile = arg + '.out'  # default output file name
         elif opt in ("-o", "--ofile"):
-            outputFile = arg
-        elif opt == '-l':
+            outputfile = arg
+        elif '-l' == opt:
             left = True
-        elif opt == '-r':
+        elif '-r' == opt:
             right = True
-        elif opt == '-u':
+        elif '-u' == opt:
             up = True
-        elif opt == '-d':
+        elif '-d' == opt:
             down = True
 
     # some validation
-    if inputFile == '':
+    if '' == inputfile:
         print('Must specify input file')
         sys.exit()
     if left is False and right is False and up is False and down is False:
@@ -61,11 +60,10 @@ def main(argv):
         sys.exit()
 
     print('Processing...')
-    print('Input file: ', inputFile)
+    print('Input file: ', inputfile)
     # load in image
     try:
-        image = PIL.Image.open(inputFile)
-        mode = image.mode
+        image = PIL.Image.open(inputfile)
     except FileNotFoundError:
         print('Cant find input file')
         sys.exit()
@@ -79,24 +77,24 @@ def main(argv):
     mirror = PIL.ImageOps.mirror(image)
     if left:
         print('Mirroring left')
-        image = stack_horizontal(mode, mirror, image)
+        image = stack_horizontal(mirror, image)
     if right:
         print('Mirroring right')
-        image = stack_horizontal(mode, image, mirror)
+        image = stack_horizontal(image, mirror)
 
     # now we have horizontal sorted, find mirror ('flipped') image
     # to add above or below if needed
     flip = PIL.ImageOps.flip(image)
     if up:
         print('Flipping up')
-        image = stack_vertical(mode, flip, image)
+        image = stack_vertical(flip, image)
     if down:
         print('Flipping down')
-        image = stack_vertical(mode, image, flip)
+        image = stack_vertical(image, flip)
 
-    print('Output file: ', outputFile)
+    print('Output file: ', outputfile)
     # write out image
-    image.save(outputFile)
+    image.save(outputfile)
 
 
 if __name__ == "__main__":
